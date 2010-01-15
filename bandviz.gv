@@ -1,0 +1,9 @@
+digraph prof {
+	size="6,4";
+	ratio = fill;
+	node [style=filled];
+	"Tom Morello" -> "Audioslave" [color="0.650 0.700 0.700"];
+	"Tom Morello" -> "The Night Watchman" [color="0.650 0.700 0.700"];
+	"Sr" -> "Rage" [color="0.650 0.700 0.700"];
+	"Brad Wilk" -> "Rage Against The Machine" [color="0.650 0.700 0.700"];
+}

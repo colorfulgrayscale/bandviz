@@ -18,7 +18,7 @@ class Artist:
     def __str__(self):
         returnString =  self.name + " is a " + self.instrument + " and is in " + str(len(self.bandList)) + " band(s) {"
         for i in self.bandList:
-            returnString += str(i.name)
+            returnString += str(i.name) + ", "
         return returnString + "}";
     def __eq__(self, other):
         if isinstance(other, Artist):
@@ -46,7 +46,9 @@ class Band:
         returnString = self.name + " has " + str(len(self.artistList)) + " member(s)"
         for i in self.artistList:
             returnString +=  "\n\t -> "+str(i)
-        return returnString   
+        return returnString
+    def getArtistArray(self):
+        return self.artistList
     def __eq__(self, other):
         if isinstance(other, Band):
             return self.name.lower() == other.name.lower()
@@ -61,31 +63,48 @@ class Band:
 class BandManager:
     artistList = []
     BandList = []
+    vizHeader = "digraph prof {\n\tsize=\"6,4\";\n\tratio = fill;\n\tnode [style=filled];"
+
     def addArtist(self, arg_artist, instrument=""):
+        
         if(isinstance(arg_artist,Artist)):
-            self.artistList.append(arg_artist)
+            if arg_artist in self.artistList:
+                    artistIndex = self.artistList.index(arg_artist)
+                    if str(arg_artist.instrument).strip() == "":
+                        print "* Skipping Create New Artist " + str(arg_artist.name) + ", already exists at index:" + str(artistIndex)
+                    else:
+                        print "* Updated instrument for Artist " + str(arg_artist.name) + ", replaced " + str(self.artistList[artistIndex].instrument) + " with " + str(arg_artist.instrument)  
+                        self.artistList[artistIndex].instrument = arg_artist.instrument
+            else:
+                self.artistList.append(arg_artist)
+                print "* Creating New Artist " + str(arg_artist.name) + ", " + str(arg_artist.instrument)
         else:
             if(isinstance(arg_artist,str)):
-                self.artistList.append(Artist(arg_artist,instrument))
+                self.addArtist(Artist(arg_artist,instrument))
+
 
     def addBand(self, arg_band):
         if(isinstance(arg_band,Band)):
-            self.BandList.append(arg_band)
+            if arg_band in self.BandList:
+                    bandIndex = self.BandList.index(arg_band)
+                    print "# Skipping Create New Band " + str(arg_band.name) + ", already exists at index:" + str(bandIndex)
+            else:
+                self.BandList.append(arg_band)
+                print "# Creating New Band " + str(arg_band.name)
         else:
             if(isinstance(arg_band,str)):
-                self.BandList.append(Band(arg_band))
-                
+                self.addBand(Band(arg_band))
+
     def link(self,artist, band):
         print "\t -> Trying to Link " + artist.name +" with " +  band.name
         if(isinstance(band,Band)):
             if(isinstance(artist,Artist)):
-
                 #link band with artist
                 if artist in self.artistList:
                     artistIndex = self.artistList.index(artist)
                     if not self.artistList[artistIndex].hasBand(band):
                         self.artistList[artistIndex].addBand(band)
-                        print "\t\t Linked artist " + self.artistList[artistIndex].name + " with band " + band.name;                        
+                        print "\t\tLinking artist " + self.artistList[artistIndex].name + " with band " + band.name;                        
                     else:
                         print "\t\tArtist " + self.artistList[artistIndex].name + " has already been linked to band " + band.name + ", skipping";    
                 else:
@@ -93,13 +112,13 @@ class BandManager:
                     print "\t\tArtist " + artist.name + " not found, Creating Artist, Relinking";                    
                     self.addArtist(artist);
                     self.link(artist,band);
-                
+                    return;
                 #link artist with band
                 if band in self.BandList:
                     bandIndex = self.BandList.index(band)
                     if not self.BandList[bandIndex].hasArtist(artist):
                         self.BandList[bandIndex].addArtist(artist)
-                        print "\t\t Linked band " + self.BandList[bandIndex].name + " with artist " + artist.name;                                                
+                        print "\t\tLinking band " + self.BandList[bandIndex].name + " with artist " + artist.name;                                                
                     else:
                         print "\t\tBand " + self.BandList[bandIndex].name + " has already been linked to artist " + artist.name;                                                
                 else:
@@ -111,7 +130,6 @@ class BandManager:
                 print "\t\t!! WRONG DATATYPE ||"
         else:
             print "\t\t!! WRONG DATATYPE !!"
-  
 
     def printAllArtists(self):
         returnString =""
@@ -123,39 +141,59 @@ class BandManager:
         returnString =""
         for i in self.BandList:
             returnString +=  str(i) + "\n"
-        return returnString   
+        return returnString
+
+    def generateGV(self):
+        filename = "bandviz.gv"
+        file = open(filename, 'w')
+        file.write(self.vizHeader)
+        for artistIterator in self.artistList:
+            print ">> " + str(artistIterator.name)
+            for bandIterator in artistIterator.bandList:
+                print  "   + " +  str(bandIterator.name)
+                file.write("\n\t\"" + str(artistIterator.name) + "\" -> \"" + str(bandIterator.name) + "\" [color=\"0.650 0.700 0.700\"];")
+        file.write("\n}")
+        file.close()        
         
 
 if __name__ == '__main__':
-    print "Making..."
     bm = BandManager()
-    bm.addArtist("Serj Tankian","Vocals")
+    
+    """
+    bm.addArtist("Serj Tankian","Vocalist")
     bm.addArtist("Tom Morello","Guitarist")
     brad = Artist("Brad Wilk","Drummer")
+    bm.addArtist(brad)
     bm.addBand("Rage Against The Machine")
+    bm.addBand("The Night Watchman")
     audioslave = Band("Audioslave")
     bm.addBand(audioslave)
-    bm.addArtist(brad)
-    print "test printing..."    
-    print bm.printAllArtists()
-    print bm.printAllBands()
-    print "-----------------------------------------------"    
-    print "linking..."
+    """
+    
+    print "----------------LINKING-------------------------------"    
     bm.link(Artist("Tom Morello", "Guitarist"), Band("Audioslave"))
+    bm.link(Artist("Tom Morello", "Guitarist"), Band("The Night Watchman"))
+    bm.addArtist(Artist("Tom Morello", "_"))
+    bm.addArtist(Artist("Tom Morello", " "))
+    bm.addArtist(Artist("Tom Morello"))
+    bm.addArtist("Tom Morello")
+    bm.addBand("Jackson 5")
+    bm.addBand("Jackson 5")
     bm.link(Artist("Sr", "Guitarist"), Band("Rage"))
     bm.link(Artist("Brad Wilk", "Drummer"), Band("Rage Against The Machine"))
-    print "-----------------------------------------------"        
+
+    print "----------------PRINTING-------------------------------"    
     print bm.printAllArtists()
     print bm.printAllBands()
 
-
-#bob.setInstrument("sdf")
-#print bob
-#
-#sam = Band("Band 1");
-#print sam;
-#sam.addArtist(bob)
-#
-#bob.addBand(sam)
-#print sam;
-#print bob;
+    print "----------------GENERATING-------------------------------"        
+    bm.generateGV()
+    print "-----------------------------------------------------"    
+    
+    #prune factor - cut out acts with less than 2 links
+    #depth factor - recursion cut off
+    #artist to album or (album to artist)
+    #name of output file
+    
+    
+    
