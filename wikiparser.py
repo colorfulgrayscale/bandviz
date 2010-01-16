@@ -18,7 +18,7 @@ class WikiParser:
         soup = BeautifulSoup.BeautifulSoup(tableData) #refill soup
         rowData = str(soup.findAll("tr")) #get all rows
         soup = BeautifulSoup.BeautifulSoup(rowData) 
-        relatedBandsDictionary = {'':''} #init return dictionary
+        relatedBandsList = list() #init return list
         for i in soup.contents:
             value = str(i) #buffer store
             if (not value.strip() ==",") and (not value.strip() =="]") and (not value.strip() =="[") : #if data we are looking for
@@ -34,12 +34,13 @@ class WikiParser:
                     for bandLinks in relatedBandLinks: #iterate and build dictionary
                         bandLinksIndex = relatedBandLinks.index(bandLinks)
                         relatedBandLinks[bandLinksIndex] = "http://en.wikipedia.org" + bandLinks
-                        relatedBandsDictionary[relatedBands[bandLinksIndex]] = relatedBandLinks[bandLinksIndex] #push into dictionary
-                        #relatedBandsDictionary["band"] = relatedBands[bandLinksIndex]
-                        #relatedBandsDictionary["link"] = relatedBandLinks[bandLinksIndex]
-
-                    return relatedBandsDictionary
-        return relatedBandsDictionary #return blank
+                        #relatedBandsDictionary[relatedBands[bandLinksIndex]] = relatedBandLinks[bandLinksIndex] #push into dictionary
+                        relatedBandsDictionary = dict() #init dictionary
+                        relatedBandsDictionary["band"] = relatedBands[bandLinksIndex]
+                        relatedBandsDictionary["link"] = relatedBandLinks[bandLinksIndex]
+                        relatedBandsList.append(relatedBandsDictionary)
+                    return relatedBandsList
+        return relatedBandsList #return blank
     
     def getBandMembers(self, Btype="current"):
         if(Btype.lower() =="former"): Btype = "['former&#160;members']"
@@ -49,7 +50,8 @@ class WikiParser:
         soup = BeautifulSoup.BeautifulSoup(tableData)
         rowData = str(soup.findAll("tr")) #get all rows
         soup = BeautifulSoup.BeautifulSoup(rowData)
-        BandMembersDictionary = {'':''} #init return dictionary
+        
+        relatedBandsList = list() #init return list
         i = iter(soup.contents)
         while True:
             try: value = i.next()
@@ -79,9 +81,13 @@ class WikiParser:
                             
                         relatedBands = self.stripArraytags(relatedBands)
                         relatedBandLinks= self.stripArraytags(relatedBandLinks)
-                        BandMembersDictionary[relatedBands] = relatedBandLinks
-                    return BandMembersDictionary
-        return BandMembersDictionary #return blank
+                        #BandMembersDictionary[relatedBands] = relatedBandLinks
+                        BandMembersDictionary = dict() #init dictionary
+                        BandMembersDictionary["artist"] = relatedBands
+                        BandMembersDictionary["link"] = relatedBandLinks
+                        relatedBandsList.append(BandMembersDictionary)
+                    return relatedBandsList
+        return relatedBandsList #return blank
     
     def remove_html_tags(self,data):
         #http://love-python.blogspot.com/2008/07/strip-html-tags-using-python.html
@@ -132,9 +138,9 @@ class WikiParser:
 
 if __name__ == '__main__':
     print "\n\n\n=================================================\n"
-    a = WikiParser("http://en.wikipedia.org/wiki/Soundgarden")
+    #a = WikiParser("http://en.wikipedia.org/wiki/Soundgarden")
     #a = WikiParser("http://en.wikipedia.org/wiki/Chris_Cornell")
-    #a = WikiParser("http://en.wikipedia.org/wiki/Green_Jelly")
+    a = WikiParser("http://en.wikipedia.org/wiki/Green_Jelly")
     #a = WikiParser("http://en.wikipedia.org/wiki/Radioactive_Chickenheads")
     print "\nName: "
     print a.getName("band")
