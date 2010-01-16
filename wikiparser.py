@@ -33,10 +33,11 @@ class WikiParser:
                     relatedBandLinks  = re.compile('href=\"(.*?)title', re.DOTALL | re.IGNORECASE).findall(str(aData)) #strip link
                     for bandLinks in relatedBandLinks: #iterate and build dictionary
                         bandLinksIndex = relatedBandLinks.index(bandLinks)
+                        bandLinks = str(bandLinks).replace("\"","").strip()
                         relatedBandLinks[bandLinksIndex] = "http://en.wikipedia.org" + bandLinks
                         #relatedBandsDictionary[relatedBands[bandLinksIndex]] = relatedBandLinks[bandLinksIndex] #push into dictionary
                         relatedBandsDictionary = dict() #init dictionary
-                        relatedBandsDictionary["band"] = relatedBands[bandLinksIndex]
+                        relatedBandsDictionary["band"] = self.remove_html_tags(self.remove_brackets(relatedBands[bandLinksIndex]))
                         relatedBandsDictionary["link"] = relatedBandLinks[bandLinksIndex]
                         relatedBandsList.append(relatedBandsDictionary)
                     return relatedBandsList
@@ -83,7 +84,7 @@ class WikiParser:
                         relatedBandLinks= self.stripArraytags(relatedBandLinks)
                         #BandMembersDictionary[relatedBands] = relatedBandLinks
                         BandMembersDictionary = dict() #init dictionary
-                        BandMembersDictionary["artist"] = relatedBands
+                        BandMembersDictionary["artist"] = self.remove_html_tags(self.remove_brackets(relatedBands))
                         BandMembersDictionary["link"] = relatedBandLinks
                         relatedBandsList.append(BandMembersDictionary)
                     return relatedBandsList
@@ -93,6 +94,11 @@ class WikiParser:
         #http://love-python.blogspot.com/2008/07/strip-html-tags-using-python.html
         p = re.compile(r'<.*?>')
         return p.sub('', data)
+
+    def remove_brackets(self,data):
+        p = re.compile(r'(.*?)')
+        return p.sub('', data)
+    
         
     def stripArraytags(self, data):
         data = str(data)
@@ -125,25 +131,31 @@ class WikiParser:
         return relatedBandsDictionary #return blank
     
     def getName(self, type="band"):
-        if(type.lower() == "artist"): type = "fn"
-        else: type = "fn org"
         soup = BeautifulSoup.BeautifulSoup(self.data) 
-        headerText =  str(soup.findAll("span", { "class" : type })) #find title
-        if(type=="fn"): relatedBandLinks  = re.compile('<span class="fn">(.*?)</span>', re.DOTALL | re.IGNORECASE).findall(str(headerText)) #clean it up
-        else: relatedBandLinks  = re.compile('<span class="fn org">(.*?)</span>', re.DOTALL | re.IGNORECASE).findall(str(headerText)) #clean it up
-        returnText =""
-        try: returnText  = str(relatedBandLinks[0])
-        except: return "" #return blank, if not found
-        return returnText
+        headerText =  str(soup.findAll("title")) #find title
+        headerText = headerText.replace("(band)","")
+        headerText = self.remove_brackets(headerText)
+        headerText = self.remove_html_tags(headerText)
+        headerText  = self.stripArraytags(headerText)
+        headerText = headerText.replace("- Wikipedia, the free encyclopedia","")
+        
+        headerText  = headerText.strip()
+        return headerText                        
+        ##if(type=="fn"): relatedBandLinks  = re.compile('<span class="fn">(.*?)</span>', re.DOTALL | re.IGNORECASE).findall(str(headerText)) #clean it up
+        ##else: relatedBandLinks  = re.compile('<span class="fn org">(.*?)</span>', re.DOTALL | re.IGNORECASE).findall(str(headerText)) #clean it up
+        ##try: returnText  = str(relatedBandLinks[0])
+        ##except: return "" #return blank, if not found
+        ##return returnText
 
 if __name__ == '__main__':
     print "\n\n\n=================================================\n"
     #a = WikiParser("http://en.wikipedia.org/wiki/Soundgarden")
     #a = WikiParser("http://en.wikipedia.org/wiki/Chris_Cornell")
-    a = WikiParser("http://en.wikipedia.org/wiki/Green_Jelly")
+    #a = WikiParser("http://en.wikipedia.org/wiki/Green_Jelly")
+    a = WikiParser("http://en.wikipedia.org/wiki/Tool_(band)")
     #a = WikiParser("http://en.wikipedia.org/wiki/Radioactive_Chickenheads")
     print "\nName: "
-    print a.getName("band")
+    print a.getName()
     print "\nInstruments: "    
     print a.getInstruments()
     print "\nRelated Bands: "
@@ -153,9 +165,9 @@ if __name__ == '__main__':
     print "\nFormer Band Members: "
     print a.getBandMembers("former")
     print "\n-----------------------------------------------------\n"    
-    a.setLink("http://en.wikipedia.org/wiki/Chris_Cornell")
+    a.setLink("http://en.wikipedia.org/wiki/Brad_Wilk")
     print "\nName: "
-    print a.getName("artist")
+    print a.getName()
     print "\nInstruments: "    
     print a.getInstruments()
     print "\nRelated Bands: "

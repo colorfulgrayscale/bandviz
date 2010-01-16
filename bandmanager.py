@@ -83,7 +83,20 @@ class BandManager:
             if(isinstance(arg_artist,str)):
                 self.addArtist(Artist(arg_artist,instrument))
 
+    def bandExists(self, bandString):
+        bandVar = Band(bandString)
+        if bandVar in self.BandList:
+            return True
+        else:
+            return False
 
+    def artistExists(self, artistString):
+        artistVar = Artist(artistString)
+        if artistVar in self.artistList:
+            return True
+        else:
+            return False
+    
     def addBand(self, arg_band):
         if(isinstance(arg_band,Band)):
             if arg_band in self.BandList:
