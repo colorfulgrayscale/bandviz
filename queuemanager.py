@@ -4,7 +4,7 @@ from wikiparser import WikiParser
 from bandmanager import *
 import os
 
-class StackManager:
+class QueueManager:
     artistStack=[]
     bandStack=[]
     maxGlyphs = 20
@@ -87,25 +87,38 @@ class StackManager:
         for item in self.bandStack:
             print  str(item)
         print "\n--------------------------------------BAND LIST---------------------\n"
-        print stack.bm.printAllBands()
-        #print "\n\n---------------------------------ARTIST LIST---------------------\n"
-        #print stack.bm.printAllArtists()
-        
+        print self.bm.printAllBands()
         print "\n+=+=+=+=+==+=+=+==+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+==+=+=+=+=+=+=\n\n"                    
+
+    def printArtistStack(self):
+        print "\n\n+=+=+=+=+=+==+=+=+==+=+=+=+=artist STACK+=+=+=+=+=+=+=++=+=+=+=+=+=+=+==\n"
+        for item in self.artistStack:
+            print  str(item)
+        print "\n--------------------------------------artist LIST---------------------\n"
+        print self.bm.printAllArtists()
+        print "\n+=+=+=+=+==+=+=+==+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+==+=+=+=+=+=+=\n\n"                    
+
+
     def start(self):
         while self.hasMoreElements():
             if not self.glyphCounter  == self.maxGlyphs:
-                self.printBandStack()
                 self.glyphCounter = self.glyphCounter+1
-                if self.artistStack: self.processArtists()
-                if self.bandStack: self.processBands()
+                
+                if self.artistStack:
+                    self.printArtistStack()
+                    self.processArtists()
+                    
+                
+                if self.bandStack:
+                    self.printBandStack()
+                    self.processBands()
+                    
+                    
             else: break
     
 
 os.system("clear")
 
-stack = StackManager("http://en.wikipedia.org/wiki/Tool_(band)")
-
-print stack.start()
-
-stack.bm.generateGV()
+qm = QueueManager("http://en.wikipedia.org/wiki/Tool_(band)")
+qm.start()
+qm.bm.generateGV()
