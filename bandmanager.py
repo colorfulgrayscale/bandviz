@@ -4,23 +4,23 @@ class Artist:
     def __init__(self, name="",instrument=""):
         self.name = name
         self.instrument = instrument
-        self.bandList = []
+        self.bandList = [] #stores list of all bands the artist is in
     def setName(self, name):
         self.name = name
     def setInstrument(self, instrument):
         self.instrument = instrument
-    def hasBand(self, arg_band):
+    def hasBand(self, arg_band): #check if artist belongs to a band
         if(isinstance(arg_band, Band)):
             return arg_band in self.bandList
-    def addBand(self, arg_band):
+    def addBand(self, arg_band): #link artist with band
         if(isinstance(arg_band, Band)):
             self.bandList.append(arg_band)
-    def __str__(self):
+    def __str__(self): #toString()
         returnString =  self.name + " is a " + self.instrument + " and is in " + str(len(self.bandList)) + " band(s) {"
         for i in self.bandList:
             returnString += str(i.name) + ", "
         return returnString + "}";
-    def __eq__(self, other):
+    def __eq__(self, other): #override equality operator
         if isinstance(other, Artist):
             return self.name.lower() == other.name.lower()
         return NotImplemented
@@ -33,7 +33,7 @@ class Artist:
 class Band:
     def __init__(self, name=""):
         self.name = name
-        self.artistList = []
+        self.artistList = [] #list of all artists in each band
     def setName(self, name):
         self.name = name
     def hasArtist(self, arg_artist):
@@ -60,6 +60,7 @@ class Band:
         return not result    
 
 
+ #band manager manages bands and artists, linking and such like.
 class BandManager:
     artistList = []
     BandList = []
