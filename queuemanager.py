@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 
 from wikiparser import WikiParser
+from collections import deque
 from bandmanager import *
 import os
 
 class QueueManager:
-    artistStack=[]
-    bandStack=[]
-    maxGlyphs = 20
+    artistStack=deque()
+    bandStack=deque()
+    maxGlyphs = 10
     glyphCounter = 0
     bm = BandManager()
+    
     def __init__(self, link="http://en.wikipedia.org/wiki/Soundgarden"):
         self.addtoStack(link)        
 
@@ -20,11 +22,11 @@ class QueueManager:
         if wmembers:
             initialEntry["band"] = wparse.getName()
             initialEntry["link"] = link
-            self.bandStack.append(initialEntry)
+            self.bandStack.appendleft(initialEntry)
         else:
             initialEntry["artist"] = wparse.getName()
             initialEntry["link"] = link
-            self.artistStack.append(initialEntry)
+            self.artistStack.appendleft(initialEntry)
             
     def processArtists(self):
         tempArtist = self.artistStack.pop()
@@ -39,7 +41,7 @@ class QueueManager:
         for act in associatedActs :
             if not self.bm.bandExists(act["band"]):
                 print "** Adding band to stack " + str(act)
-                self.bandStack.append(act)
+                self.bandStack.appendleft(act)
             else:
                 print "\n ** Skipping Adding band to stack " + str(act)
         
@@ -56,7 +58,7 @@ class QueueManager:
         print "--> Members\n "
         for member in members:
             print "\n---->" + str(member) + "\n"
-            self.artistStack.append(member)
+            self.artistStack.appendleft(member)
             self.bm.link( Artist(member["artist"]), Band(tempBand["band"]))
             
         if not members:
@@ -64,14 +66,14 @@ class QueueManager:
             artistEntry = dict()
             artistEntry["artist"] = tempBand["band"]
             artistEntry["link"] = tempBand["link"]
-            self.artistStack.append(artistEntry)
+            self.artistStack.appendleft(artistEntry)
             return
             
         associatedActs = parser.getRelatedActs()
         for act in associatedActs :
             if not self.bm.bandExists(act["band"]):
                 print "** Adding band to stack " + str(act)
-                self.bandStack.append(act)
+                self.bandStack.appendleft(act)
             else:
                 print "\n ** Skipping Adding band to stack " + str(act)
             
@@ -102,13 +104,10 @@ class QueueManager:
     def start(self):
         while self.hasMoreElements():
             if not self.glyphCounter  == self.maxGlyphs:
-                self.glyphCounter = self.glyphCounter+1
-                
+                self.glyphCounter = self.glyphCounter+1                
                 if self.artistStack:
                     self.printArtistStack()
                     self.processArtists()
-                    
-                
                 if self.bandStack:
                     self.printBandStack()
                     self.processBands()
