@@ -224,8 +224,4 @@ if __name__ == '__main__':
     print "----------------GENERATING-------------------------------"        
     bm.generateGV()
     print "-----------------------------------------------------"    
-    
-    #prune factor - cut out acts with less than 2 links
-    #depth factor - recursion cut off
-    #artist to album or (album to artist)
-    #name of output file
+
