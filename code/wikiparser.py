@@ -112,6 +112,11 @@ class WikiParser:
         data  = data.replace("]","")
         data = data.strip()
         return data
+    
+    def extractANSIfromUTF(self, utfText):
+        utfText = utfText.replace("\\\\","\\")
+        utfText = utfText.decode('latin-1')
+        return utfText        
         
     def getInstruments(self): #get list of instruments played by artist
         soup = BeautifulSoup.BeautifulSoup(self.data) 
@@ -163,15 +168,3 @@ if __name__ == '__main__':
     print "\nFormer Band Members: "
     print a.getBandMembers("former")
     print "\n-----------------------------------------------------\n"    
-    a.setLink("http://en.wikipedia.org/wiki/Brad_Wilk")
-    print "\nName: "
-    print a.getName()
-    print "\nInstruments: "    
-    print a.getInstruments()
-    print "\nRelated Bands: "
-    print a.getRelatedActs()
-    print "\nCurrent Band Members: "
-    print a.getBandMembers()
-    print "\nFormer Band Members: "
-    print a.getBandMembers("former")
- 

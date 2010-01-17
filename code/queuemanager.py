@@ -10,16 +10,19 @@ http://www.colorfulgrayscale.com
 from wikiparser import WikiParser
 from collections import deque
 from bandmanager import *
+import time
 
 class QueueManager: #manager recursion queue
     artistQueue=deque() #queue of artists
     bandQueue=deque() #queue of bands
     maxGlyphs = 10 #resolution of data
     glyphCounter = 0 #current resolution
+    showFormerMembers = False #enable this to make it show defunct members of team.
+    
     bm = BandManager() #init band manager
     expansiveArtistGraph = False #if enabled, will follow artist links with increased priority
     
-    def __init__(self, link="http://en.wikipedia.org/wiki/Soundgarden"):
+    def __init__(self, link="http://en.wikipedia.org/wiki/Soundgarden",):
         self.addtoStack(link)        
 
     def addtoStack(self, link): #add band or artist to respective queue
@@ -56,10 +59,14 @@ class QueueManager: #manager recursion queue
             return
         parser = WikiParser(tempBand["link"])
         members = parser.getBandMembers()
-        formerMembers = parser.getBandMembers("former")
+        formerMembers = parser.getBandMembers("former")            
         for member in members: 
             self.artistQueue.appendleft(member) #add member artists to artist stack
             self.bm.link( Artist(member["artist"]), Band(tempBand["band"])) #link band with artist
+        if(self.showFormerMembers):
+            for member in formerMembers: 
+                self.artistQueue.appendleft(member) #add member artists to artist stack
+                self.bm.link( Artist(member["artist"]), Band(tempBand["band"]),True) #link band with artist
         if not members and not formerMembers: #if artist accidentaly ends up in band, add back to artist.
             artistEntry = dict()
             artistEntry["artist"] = tempBand["band"]
@@ -81,22 +88,17 @@ class QueueManager: #manager recursion queue
         return False
         
     def printbandQueue(self):
-        print "\n\n+=+=+=+=+=+==+=+=+==+=+=+=+=BAND STACK+=+=+=+=+=+=+=++=+=+=+=+=+=+=+==\n"
         for item in self.bandQueue:
             print  str(item)
-        print "\n--------------------------------------BAND LIST---------------------\n"
         print self.bm.printAllBands()
-        print "\n+=+=+=+=+==+=+=+==+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+==+=+=+=+=+=+=\n\n"                    
 
     def printartistQueue(self):
-        print "\n\n+=+=+=+=+=+==+=+=+==+=+=+=+=artist STACK+=+=+=+=+=+=+=++=+=+=+=+=+=+=+==\n"
         for item in self.artistQueue:
             print  str(item)
-        print "\n--------------------------------------artist LIST---------------------\n"
         print self.bm.printAllArtists()
-        print "\n+=+=+=+=+==+=+=+==+=+=+=+=+=+=+=+=+=+=+=++=+=+=+=+=+=+=+==+=+=+=+=+=+=\n\n"                    
 
     def start(self,resolution=10):
+        start = time.time()
         self.maxGlyphs = resolution
         while self.hasMoreElements():
             if not self.glyphCounter  == self.maxGlyphs:
@@ -108,8 +110,11 @@ class QueueManager: #manager recursion queue
                     #self.printbandQueue()
                     self.processBands()
             else:
-                print "\n\n[-] Stopping, Resolution reached.\n"
+                print "\n[-] Stopping, Resolution reached.\n"
                 break
-        self.bm.generateGV()
-            
+        self.bm.generateGV(self.showFormerMembers)
+        end = time.time()
+        elapsed= round(end - start,1)
+        min = round(elapsed/60,1)
+        print "\n[+] Finished in " + str(elapsed) + " seconds. (" + str(min) + " mins)\n"
     

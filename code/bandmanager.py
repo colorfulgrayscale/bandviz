@@ -13,6 +13,7 @@ class Artist:
         self.name = name #name of sartist
         self.instrument = instrument #instruments played by artist
         self.bandList = [] #stores list of all the bands to which the artist belongs
+        self.formerBands = []
     
     def setName(self, name): #setter
         self.name = name
@@ -27,6 +28,11 @@ class Artist:
     def addBand(self, arg_band): #link artist with band
         if(isinstance(arg_band, Band)):
             self.bandList.append(arg_band)
+
+    def addFormerBand(self, arg_band): #link artist with band
+        if(isinstance(arg_band, Band)):
+            self.formerBands.append(arg_band)
+
     
     def __str__(self): #toString()
         returnString =  self.name + " is a " + self.instrument + " and is in " + str(len(self.bandList)) + " band(s) {"
@@ -50,6 +56,7 @@ class Band:
     def __init__(self, name=""):
         self.name = name
         self.artistList = [] #list of all artists in each band
+        self.formerArtistList = [] #list of all artists in each band
     
     def setName(self, name):
         self.name = name
@@ -58,14 +65,28 @@ class Band:
         if(isinstance(arg_artist, Artist)):
             return arg_artist in self.artistList
     
+    def hasFormerArtist(self, arg_artist): #check if an artist is part of the band
+        if(isinstance(arg_artist, Artist)):
+            return arg_artist in self.formerArtistList
+
+
     def addArtist(self, arg_artist): #link artist with band
         if(isinstance(arg_artist, Artist)):
             self.artistList.append(arg_artist)
+
+    def addFormerArtist(self, arg_artist): #link former artist with band
+        if(isinstance(arg_artist, Artist)):
+            self.formerArtistList.append(arg_artist)
+            
     
     def __str__(self): #toString()
         returnString = self.name + " has " + str(len(self.artistList)) + " member(s)"
         for i in self.artistList:
             returnString +=  "\n\t -> "+str(i)
+        returnString += "\n\tFormer member(s)"    
+        for i in self.formerArtistList:
+            returnString +=  "\n\t -> " + str(i) 
+            
         return returnString
     
     def getArtistArray(self): #getter, old habits dont die :(
@@ -99,6 +120,8 @@ class BandManager:
     vizBackground = "white"
     vizArrowColor = "blue4"
     
+    vizOutpuFileName = "bandviz.gv"
+    
     #graphViz attributes, edit this according to your taste
         
     def addArtist(self, arg_artist, instrument=""): #add artist to manager
@@ -129,7 +152,7 @@ class BandManager:
             if(isinstance(arg_band,str)): #create a Band object and recall
                 self.addBand(Band(arg_band))
 
-    def link(self,artist, band): #link artist and band
+    def link(self,artist, band,former=False): #link artist and band
         if(isinstance(band,Band)):
             if(isinstance(artist,Artist)): #make sure they are right datatypes
 
@@ -137,22 +160,28 @@ class BandManager:
                 if artist in self.artistList:
                     artistIndex = self.artistList.index(artist)
                     if not self.artistList[artistIndex].hasBand(band): #not already linked
-                        self.artistList[artistIndex].addBand(band) #link
+                        if former:
+                            self.artistList[artistIndex].addFormerBand(band)
+                        else:    
+                            self.artistList[artistIndex].addBand(band) #link
                 else: #band not found
                     #create and recall
                     self.addArtist(artist);
-                    self.link(artist,band);
+                    self.link(artist,band,former);
                     return;
                 
                 #link artist with band
                 if band in self.BandList:
                     bandIndex = self.BandList.index(band)
                     if not self.BandList[bandIndex].hasArtist(artist): #check if not already linked
-                        self.BandList[bandIndex].addArtist(artist) #link
+                        if former:
+                            self.BandList[bandIndex].addFormerArtist(artist) #link former artists
+                        else:
+                            self.BandList[bandIndex].addArtist(artist) #link
                 else:
                     #create band and recall
                     self.addBand(band);
-                    self.link(artist,band);
+                    self.link(artist,band,former);
             else:
                 print "\t\t[-] WRONG DATATYPE SENT TO LINK"
         else:
@@ -170,23 +199,37 @@ class BandManager:
             returnString +=  str(i) + "\n"
         return returnString
 
-    def generateGV(self): #Generate GraphViz dot file.
-        vizHeader = "digraph prof {"
-        vizHeader = vizHeader  + "\n\tgraph [fontsize = \"20\", label = \"generated with bandViz\",size = \"60\", overlap=false, ratio = auto, bgcolor=\""+ self.vizBackground +"\"];"
-        vizHeader = vizHeader + "\n\tnode [style=filled,fontsize = \"16\",size=\"30\",overlap=false];\n"
-        filename = "bandviz.gv"
+    def generateGV(self, former=False): #Generate GraphViz dot file.
+        vizHeader = "/* generated by bandViz\n * http://github.com/colorfulgrayscale/bandviz/\n *\n * To make a graph from this file, download GraphViz from\n * http://www.graphviz.org/ and point it to this file.\n */\n\n"
+        vizHeader =  vizHeader + "digraph bandviz {"
+        vizHeader = vizHeader + ("\n\n\t/* Global Formatting */\n")        
+        vizHeader = vizHeader  + "\n\tgraph [fontsize = \"20\", label = \"generated with bandViz\", size = \"60\", overlap=false, ratio = auto, bgcolor=\""+ self.vizBackground +"\"];"
+        vizHeader = vizHeader + "\n\tnode [style=filled, fontsize = \"16\", size=\"30\", overlap=false];\n"
+        filename = self.vizOutpuFileName
         file = open(filename, 'w')
         file.write(vizHeader) #write header
+        file.write("\n\t/* Formatting for Band Nodes */\n")        
         for bandsIter in self.BandList:
-            if bandsIter.artistList:
-                bandString = "\"" + bandsIter.name + "\" " + "[shape=\""+self.vizBandShape+"\",style=\"filled\",color=\""+self.vizBandBackgroundColor+"\",fontcolor=\""+ self.vizBandFontColor+ "\" ];"
-                file.write("\n\t" + bandString )
-            
-        for artistIterator in self.artistList:
-            for bandIterator in artistIterator.bandList: #iterate and write data
-                artistString = "\"" + artistIterator.name + "\" " + "[shape=\""+self.vizArtistShape+"\",style=\"filled\",color=\""+self.vizArtistBackgroundColor+"\",fontcolor=\""+ self.vizArtistFontColor+ "\" ];"
-                file.write("\n\t" + artistString )
-                file.write("\n\t\"" + str(artistIterator.name) + "\" -> \"" + str(bandIterator.name) + "\" [color=\""+ self.vizArrowColor + "\"];")
+                if bandsIter.artistList or former:
+                    bandString = "\"" + bandsIter.name + "\" " + "[shape=\""+self.vizBandShape+"\", style=\"filled\", color=\""+self.vizBandBackgroundColor+"\", fontcolor=\""+ self.vizBandFontColor+ "\"];"
+                    file.write("\n\t" + bandString )
+        file.write("\n\n\t/* Formatting for Artist Nodes */\n")
+        for artistsIter in self.artistList:
+            if artistsIter.bandList:
+                artistString = "\n\t\"" + artistsIter.name + "\" " + "[shape=\""+self.vizArtistShape+"\", style=\"filled\", color=\""+self.vizArtistBackgroundColor+"\", fontcolor=\""+ self.vizArtistFontColor+ "\"];"
+                file.write(artistString)
+            if former and artistsIter.formerBands and not artistsIter.bandList:
+                artistString = "\n\t\"" + artistsIter.name + "\" " + "[shape=\""+self.vizArtistShape+"\", style=\"filled\", color=\""+self.vizArtistBackgroundColor+"\", fontcolor=\""+ self.vizArtistFontColor+ "\"];"
+                file.write(artistString)
+        file.write("\n\n\t/* Node Connections*/\n")                
+        for bandIterator in self.BandList:
+            for artistIterator in bandIterator.artistList:
+                printString = "\n\t\"" +  artistIterator.name  + "\"" +  " -> " + "\"" +  bandIterator.name  + "\"" + " [color=\""+ self.vizArrowColor + "\"];" 
+                file.write(printString)
+        for bandIterator in self.BandList:
+            for artistIterator in bandIterator.formerArtistList:
+                printString = "\n\t\"" +  artistIterator.name  + "\"" +  " -> " + "\"" +  bandIterator.name  + "\"" + " [arrowhead=onormal, color=\""+ self.vizArrowColor + "\"];" 
+                file.write(printString)
         file.write("\n}")
         file.close()        
         
