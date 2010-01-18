@@ -8,16 +8,16 @@ http://www.colorfulgrayscale.com
 """
 
 import os
-from code import queuemanager
+from bandviz import queuemanager
 
 os.system("clear")
 
 bandViz = queuemanager.QueueManager() #initialize bandViz
 
 #add artist/bands to queue
-bandViz.addtoQueue("http://en.wikipedia.org/wiki/Nine_Inch_Nails")
+bandViz.addtoQueue("http://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers")
 
-#name of output graphViz file
+#name of output graphViz file; will overwrite if already exists.
 bandViz.bm.vizOutpuFileName = "example.gv" 
 
 #graph colors and properties.
