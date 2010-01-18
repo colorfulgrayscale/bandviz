@@ -144,6 +144,7 @@ class WikiParser:
         soup = BeautifulSoup.BeautifulSoup(self.data) 
         headerText =  str(soup.findAll("title")) #find title text
         headerText = headerText.replace("(band)","") #strip verbage
+        headerText = headerText.replace("(musician)","") #strip more verbage
         headerText = self.remove_brackets(headerText) 
         headerText = self.remove_html_tags(headerText)
         headerText  = self.stripArraytags(headerText)
