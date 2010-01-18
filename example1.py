@@ -13,7 +13,7 @@ import os
 os.system("clear")
 
 #you'll need to get the wikipedia link for the artist/band and call QueueManager with it.
-queueManager = queuemanager.QueueManager("http://en.wikipedia.org/wiki/Rage_Against_the_Machine")
+queueManager = queuemanager.QueueManager("http://en.wikipedia.org/wiki/Tool_(band)")
 
 queueManager.bm.vizOutpuFileName = "example1.gv" #name of output graphViz file
 
@@ -30,4 +30,4 @@ queueManager.bm.vizArtistFontColor = "black"
 queueManager.showFormerMembers = True
 queueManager.expansiveArtistGraph = False #enable this if you want to increase priority of fetching artists
 
-queueManager.start(10) #call with resolution as parameter, higher this integer value takes longer and produces bigger and more exhaustive graphs
+queueManager.start(20) #call with resolution as parameter, higher this integer value takes longer and produces bigger and more exhaustive graphs

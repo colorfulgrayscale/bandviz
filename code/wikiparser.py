@@ -90,7 +90,8 @@ class WikiParser:
                         BandMembersDictionary = dict() #init dictionary
                         BandMembersDictionary["artist"] = self.remove_html_tags(self.remove_brackets(relatedBands)) #more cleaning
                         BandMembersDictionary["link"] = relatedBandLinks
-                        relatedBandsList.append(BandMembersDictionary)
+                        if not "list of" in str(BandMembersDictionary["artist"]).lower() and not "see below" in str(BandMembersDictionary["artist"]).lower() and not "contributors" in str(BandMembersDictionary["artist"]).lower()  :
+                            relatedBandsList.append(BandMembersDictionary)
                     return relatedBandsList #return list of bands
         return relatedBandsList #return blank
     
