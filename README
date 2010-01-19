@@ -1,2 +1,9 @@
-For complete description goto http://www.colorfulgrayscale.com/software/bandviz/
-For Latest version of code goto http://github.com/colorfulgrayscale/bandviz
+For complete description and usage information
+head over to http://www.colorfulgrayscale.com/software/bandviz/
+
+bandViz is a python script. When you give it a wikipedia link of your favorite music
+band or musician, it builds you a slick graph.
+
+You will need to pass the name of the band/artist and the resolution needed as arguments.
+The script will crawl through wikipedia, parse the relevant information and build a 
+graphViz file.
