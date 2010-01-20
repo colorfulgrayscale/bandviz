@@ -82,7 +82,7 @@ class QueueManager:
                 self.__artistQueue.appendleft(member)
                 #link band with artist
                 self.bm.link( Artist(member["artist"]), Band(tempBand["band"]),True) 
-        #if artist accidentaly ends up in band, add back to artist.
+        #if artist accidentaly ends up in band, move to artist.
         if not members and not formerMembers: 
             artistEntry = dict()
             artistEntry["artist"] = tempBand["band"]

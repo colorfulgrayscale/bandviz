@@ -34,7 +34,7 @@ bandViz.bm.vizArtistFontColor = "black"
 
 #enable this to make it show defunct members of band and defunct bands.
 #enabling this will your graph bigger.
-bandViz.showFormerMembers = False 
+bandViz.showFormerMembers = True 
 
 #enable this if you want to increase priority of fetching artists.
 #enabling this will follow every artist link, ie. it increases your queue size.
@@ -42,7 +42,7 @@ bandViz.expansiveArtistGraph = False
 
 #resolution. Increase this to increase the size of your graph
 #warning: higher resolutions take longer
-bandViz.resolution = 10
+bandViz.resolution = 30
 
 #enable printDebug to make bandViz print the entity its currently processing
 #onto the console
