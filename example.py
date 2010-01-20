@@ -15,7 +15,7 @@ os.system("clear")
 bandViz = queuemanager.QueueManager() #initialize bandViz
 
 #add artist/bands to queue
-bandViz.addtoQueue("http://en.wikipedia.org/wiki/Van_Halen")
+bandViz.addtoQueue("http://en.wikipedia.org/wiki/Foo_Fighters")
 
 #name of output graphViz file; will overwrite if already exists.
 bandViz.bm.vizOutpuFileName = "example.gv" 
@@ -43,6 +43,10 @@ bandViz.expansiveArtistGraph = False
 #resolution. Increase this to increase the size of your graph
 #warning: higher resolutions take longer
 bandViz.resolution = 30
+
+#recursion limit. Increase this to increase the depth of branch while aggregating
+#information.
+bandViz.recursionLimit = 5
 
 #enable printDebug to make bandViz print the entity its currently processing
 #onto the console

@@ -126,7 +126,8 @@ class WikiParser:
                         BandMembersDictionary["link"] = relatedBandLinks
                         if (not "list of" in str(BandMembersDictionary["artist"]).lower()
                             and not "see below" in str(BandMembersDictionary["artist"]).lower()
-                            and not "contributors" in str(BandMembersDictionary["artist"]).lower()):
+                            and not "contributors" in str(BandMembersDictionary["artist"]).lower()
+                            and not "members of" in str(BandMembersDictionary["artist"]).lower()):
                             relatedBandsList.append(BandMembersDictionary)
                     return relatedBandsList #return list of bands
         return relatedBandsList #return blank

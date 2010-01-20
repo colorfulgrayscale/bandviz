@@ -22,9 +22,11 @@ class QueueManager:
         """Constructor"""
         self.__artistQueue=deque() #queue of artists
         self.__bandQueue=deque() #queue of bands
+        self.__bandProcessedList = list() #list of processed bands
         #default values
         self.resolution = 10 #resolution of data
         self.__glyphCounter = 0 #current resolution
+        self.recursionLimit = 5 #recursion limit
         self.showFormerMembers = False #show/hide defunct members of band.
         self.bm = BandManager() #init band manager
         self.expansiveArtistGraph = False #enabled/disable follow artist links
@@ -39,11 +41,13 @@ class QueueManager:
             initialEntry["band"] = wparse.getName()
             initialEntry["link"] = link
             initialEntry["recursion"] = recursionValue
+            initialEntry["parent"] = "root"
             self.__bandQueue.appendleft(initialEntry)
         else: #if artist add to artist queue
             initialEntry["artist"] = wparse.getName()
             initialEntry["link"] = link
             initialEntry["recursion"] = recursionValue
+            initialEntry["parent"] = "root"
             self.__artistQueue.appendleft(initialEntry)
             
     def __processArtists(self):
@@ -54,7 +58,11 @@ class QueueManager:
             if self.bm.artistExists(tempArtist["artist"]): 
                 return
         tabs = "\t" * tempArtist["recursion"]
-        if self.printDebug: print tabs + "[a] - " + str(tempArtist["artist"]).strip()
+        if tempArtist["recursion"] > self.recursionLimit:
+            return
+        if self.printDebug:
+            print (tabs + "[a] - " + str(tempArtist["artist"]).strip() +
+                   "   <" + tempArtist["parent"] +">")
         #add artist to band manager
         self.bm.addArtist(Artist(tempArtist["artist"])) 
         #if has no follow link, break function
@@ -64,12 +72,20 @@ class QueueManager:
         associatedActs = parser.getRelatedActs()
         for act in associatedActs : #add all associated acts to end of queue
             if not self.bm.bandExists(act["band"]):
-                act["recursion"] = tempArtist["recursion"] + 1
+                recursionValue = tempArtist["recursion"] + 1
+                if recursionValue > self.recursionLimit:
+                    continue
+                act["recursion"] = recursionValue
+                act["parent"] = "a." + tempArtist["artist"]
                 self.__bandQueue.appendleft(act)
 
     def __processBands(self):
         tempBand = self.__bandQueue.pop() #get top element
         #if has no follow link, break function
+        if(str(tempBand["band"]) in self.__bandProcessedList):
+            return
+        else:
+            self.__bandProcessedList.append(str(tempBand["band"]))
         if tempBand["link"].strip() == "": 
             return
         parser = WikiParser(tempBand["link"])
@@ -77,34 +93,50 @@ class QueueManager:
         #print tempBand.keys()
         formerMembers = parser.getBandMembers("former")
         tabs = "\t" * tempBand["recursion"]
+        if tempBand["recursion"] > self.recursionLimit:
+            return        
         for member in members:
             #add member artists to artist stack
             member["recursion"] = tempBand["recursion"] + 1
+            member["parent"] = "b." + tempBand["band"]
             self.__artistQueue.appendleft(member)
             #link band with artist
             self.bm.link( Artist(member["artist"]), Band(tempBand["band"])) 
         if(self.showFormerMembers):
             for member in formerMembers:
                 #add member artists to artist stack
-                member["recursion"] = tempBand["recursion"] + 1
+                recursionValue = tempBand["recursion"] + 1
+                if recursionValue > self.recursionLimit:
+                    continue                
+                member["recursion"] = recursionValue
+                member["parent"] = "b." + tempBand["band"]
                 self.__artistQueue.appendleft(member)
                 #link band with artist
                 self.bm.link( Artist(member["artist"]), Band(tempBand["band"]),True) 
         #if artist accidentaly ends up in band, move to artist.
-        if not members and not formerMembers: 
-            artistEntry = dict()
-            artistEntry["artist"] = tempBand["band"]
-            artistEntry["link"] = tempBand["link"]
-            artistEntry["recursion"] = tempBand["recursion"] + 1
-            self.__artistQueue.appendleft(artistEntry)
-            return
-        if self.printDebug: print tabs + "[b] - " + str(tempBand["band"]).strip()
+        if not members and not formerMembers:
+            recursionValue = tempBand["recursion"] 
+            if recursionValue < self.recursionLimit:
+                artistEntry = dict()
+                artistEntry["artist"] = tempBand["band"]
+                artistEntry["link"] = tempBand["link"]
+                artistEntry["recursion"] = recursionValue
+                artistEntry["parent"] = "b." + tempBand["band"]
+                self.__artistQueue.appendleft(artistEntry)
+                return
+        if self.printDebug:
+            print (tabs + "[b] - " + str(tempBand["band"]).strip() +
+                   "   <" + tempBand["parent"] +">")
         self.bm.addBand(tempBand["band"])
         associatedActs = parser.getRelatedActs()
         #add all associated acts to end of queue
         for act in associatedActs : 
             if not self.bm.bandExists(act["band"]):
-                act["recursion"] = tempBand["recursion"] + 1
+                recursionValue = tempBand["recursion"] + 1
+                if recursionValue > self.recursionLimit:
+                    continue
+                act["recursion"] = recursionValue
+                act["parent"] = "b." + tempBand["band"]
                 self.__bandQueue.appendleft(act)
             
     def __hasMoreElements(self):
