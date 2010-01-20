@@ -15,7 +15,7 @@ os.system("clear")
 bandViz = queuemanager.QueueManager() #initialize bandViz
 
 #add artist/bands to queue
-bandViz.addtoQueue("http://en.wikipedia.org/wiki/Red_Hot_Chili_Peppers")
+bandViz.addtoQueue("http://en.wikipedia.org/wiki/Van_Halen")
 
 #name of output graphViz file; will overwrite if already exists.
 bandViz.bm.vizOutpuFileName = "example.gv" 

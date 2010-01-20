@@ -30,7 +30,7 @@ class QueueManager:
         self.expansiveArtistGraph = False #enabled/disable follow artist links
         self.printDebug = False #enable/disable output to console
 
-    def addtoQueue(self, link):
+    def addtoQueue(self, link, recursionValue=1):
         """add band or artist to parse queue"""
         wparse = WikiParser(link)
         wmembers = wparse.getBandMembers()
@@ -38,10 +38,12 @@ class QueueManager:
         if wmembers: #if band, add to band queue
             initialEntry["band"] = wparse.getName()
             initialEntry["link"] = link
+            initialEntry["recursion"] = recursionValue
             self.__bandQueue.appendleft(initialEntry)
         else: #if artist add to artist queue
             initialEntry["artist"] = wparse.getName()
             initialEntry["link"] = link
+            initialEntry["recursion"] = recursionValue
             self.__artistQueue.appendleft(initialEntry)
             
     def __processArtists(self):
@@ -50,8 +52,9 @@ class QueueManager:
         if not self.expansiveArtistGraph: #check if to follow artist links
             #artist already visited
             if self.bm.artistExists(tempArtist["artist"]): 
-                return 
-        if self.printDebug: print "[a] - " + str(tempArtist["artist"]).strip()
+                return
+        tabs = "\t" * tempArtist["recursion"]
+        if self.printDebug: print tabs + "[a] - " + str(tempArtist["artist"]).strip()
         #add artist to band manager
         self.bm.addArtist(Artist(tempArtist["artist"])) 
         #if has no follow link, break function
@@ -61,6 +64,7 @@ class QueueManager:
         associatedActs = parser.getRelatedActs()
         for act in associatedActs : #add all associated acts to end of queue
             if not self.bm.bandExists(act["band"]):
+                act["recursion"] = tempArtist["recursion"] + 1
                 self.__bandQueue.appendleft(act)
 
     def __processBands(self):
@@ -70,15 +74,19 @@ class QueueManager:
             return
         parser = WikiParser(tempBand["link"])
         members = parser.getBandMembers()
-        formerMembers = parser.getBandMembers("former")            
+        #print tempBand.keys()
+        formerMembers = parser.getBandMembers("former")
+        tabs = "\t" * tempBand["recursion"]
         for member in members:
             #add member artists to artist stack
+            member["recursion"] = tempBand["recursion"] + 1
             self.__artistQueue.appendleft(member)
             #link band with artist
             self.bm.link( Artist(member["artist"]), Band(tempBand["band"])) 
         if(self.showFormerMembers):
             for member in formerMembers:
                 #add member artists to artist stack
+                member["recursion"] = tempBand["recursion"] + 1
                 self.__artistQueue.appendleft(member)
                 #link band with artist
                 self.bm.link( Artist(member["artist"]), Band(tempBand["band"]),True) 
@@ -87,14 +95,16 @@ class QueueManager:
             artistEntry = dict()
             artistEntry["artist"] = tempBand["band"]
             artistEntry["link"] = tempBand["link"]
+            artistEntry["recursion"] = tempBand["recursion"] + 1
             self.__artistQueue.appendleft(artistEntry)
             return
-        if self.printDebug: print "[b] - " + str(tempBand["band"]).strip()
+        if self.printDebug: print tabs + "[b] - " + str(tempBand["band"]).strip()
         self.bm.addBand(tempBand["band"])
         associatedActs = parser.getRelatedActs()
         #add all associated acts to end of queue
         for act in associatedActs : 
             if not self.bm.bandExists(act["band"]):
+                act["recursion"] = tempBand["recursion"] + 1
                 self.__bandQueue.appendleft(act)
             
     def __hasMoreElements(self):
@@ -108,6 +118,7 @@ class QueueManager:
     def start(self):
         """Starts the parse process. Returns total time taken in secs."""
         start = time.time() #start time for elapsed time
+        print "[-] Starting...\n"
         while self.__hasMoreElements():
             if not self.__glyphCounter  == self.resolution:
                 self.__glyphCounter = self.__glyphCounter+1 #resolution counter
