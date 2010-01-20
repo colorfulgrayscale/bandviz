@@ -121,7 +121,7 @@ class QueueManager:
                 artistEntry["artist"] = tempBand["band"]
                 artistEntry["link"] = tempBand["link"]
                 artistEntry["recursion"] = recursionValue
-                artistEntry["parent"] = "b." + tempBand["band"]
+                artistEntry["parent"] = tempBand["parent"]
                 self.__artistQueue.appendleft(artistEntry)
                 return
         if self.printDebug:
